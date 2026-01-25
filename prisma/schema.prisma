@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  name         String    @db.VarChar(100)
+  role         UserRole
+  avatarUrl    String?   @map("avatar_url")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  lastLogin    DateTime? @map("last_login")
+
+  propertiesAdded Property[]
+  activities      Activity[]
+
+  @@map("users")
+}
+
+model Property {
+  id              String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String          @db.VarChar(255)
+  type            PropertyType
+  status          PropertyStatus
+  inventoryStatus InventoryStatus @map("inventory_status")
+  source          String          @db.VarChar(100)
+  location        String          @db.VarChar(255)
+  locationLink    String?         @map("location_link")
+  size            String          @db.VarChar(50)
+  price           String          @db.VarChar(100)
+  images          Json            @default("[]")
+  documents       Json            @default("[]")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  createdById     String          @map("created_by") @db.Uuid
+
+  createdBy User @relation(fields: [createdById], references: [id])
+
+  @@map("properties")
+}
+
+model Contact {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String      @db.VarChar(100)
+  companyName String?     @map("company_name") @db.VarChar(150)
+  phone       String      @db.VarChar(20)
+  type        ContactType
+  location    String?     @db.VarChar(255)
+  remark      String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@map("contacts")
+}
+
+model Activity {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String       @map("user_id") @db.Uuid
+  action    String       @db.VarChar(255)
+  target    String       @db.VarChar(255)
+  type      ActivityType
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("activities")
+}
+
+enum UserRole {
+  admin
+  agent
+  client
+}
+
+enum PropertyType {
+  Retail
+  Office
+  Warehouse
+  Land
+}
+
+enum PropertyStatus {
+  Sale
+  Lease
+  PreLease @map("Pre-Lease")
+}
+
+enum InventoryStatus {
+  Active
+  Passive
+  Closed
+}
+
+enum ContactType {
+  Developer
+  ChannelPartner @map("Channel Partner")
+  Brand
+  Investor
+}
+
+enum ActivityType {
+  property
+  contact
+  deal
+  call
+}
