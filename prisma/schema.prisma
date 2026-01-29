@@ -16,6 +16,7 @@ model User {
   avatarUrl    String?   @map("avatar_url")
   createdAt    DateTime  @default(now()) @map("created_at")
   lastLogin    DateTime? @map("last_login")
+  refreshToken String?   @map("refresh_token")
 
   propertiesAdded Property[]
   activities      Activity[]
